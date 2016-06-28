@@ -25,15 +25,20 @@
     <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
     <script>
       var socket = io();
+
+      //when the form is submitted, send a message
       $('form').submit(function() {
         socket.emit('chat message', {user: $('#nickname').val(), msg: $('#m').val()});
         $('#m').val('');
         return false;
       });
+
+      //when a chat message is received, append li to #messages div
       socket.on('chat message', function(msg) {
         $('#messages').append($('<li>').text(msg.user + ': ' + msg.msg));
       });
 
+      //when a typing state message is received, show/hide in <span>
       socket.on('typing state change', function(msg) {
         if (msg.msg && msg.user !== '') {
           $('#isTyping').append($('<span>').text(msg.user + ' is typing...'));
@@ -43,9 +48,10 @@
         }
       });
 
-      var isTyping = false;
-      var numKeysPressed = 0;
-      var timeLastKeyPressed;
+      var isTyping = false; //is the user currently typing?
+      var timeLastKeyPressed; //timestamp of last keypress
+
+      //on keypress, update timestamp of last keypress. ignore enter key as it's used to send a message from the form
       $("#m").on('keypress', function(e) {
         //ignore enter key
         if (e.keyCode == 13) {
@@ -54,19 +60,22 @@
         timeLastKeyPressed = Date.now();
       });
 
+      //check typing state every 100 milliseconds
       var trackTyping = setInterval(function() {
         var now = Date.now();
+
+        //if it's been a second or more since the last keypress - user is no longer typing - send a message
         if (now - timeLastKeyPressed > 1000) {
           isTyping = false;
           socket.emit('typing state change', {user: $('#nickname').val(), msg: false});
         } else {
+          //if the state is changing from false to true, send a message
           if (!isTyping) {
             socket.emit('typing state change', {user: $('#nickname').val(), msg: true});
           }
           isTyping = true;
         }
       }, 100);
-
 
     </script>
   </body>
