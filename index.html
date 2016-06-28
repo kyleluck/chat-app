@@ -42,7 +42,11 @@
 
       //when a chat message is received, append li to #messages div
       socket.on('chat message', function(msg) {
-        $('#messages').append($('<li>').text(msg.user + ': ' + msg.msg));
+        if (msg.msg === 'clear') {
+          $('#messages').html('');
+        } else {
+          $('#messages').append($('<li>').text(msg.user + ': ' + msg.msg));
+        }
       });
 
       //when a typing state message is received, show/hide in <span>
