@@ -12,9 +12,16 @@
       #messages { list-style-type: none; margin: 0; padding: 0; }
       #messages li { padding: 5px 10px; }
       #messages li:nth-child(odd) { background: #eee; }
+      #onlineUsersContainer { position: fixed; right: 0; top: 0; width: 143px; height: 100%; background: #999; color: white; padding:10px;}
+      #onlineUsers {margin-left: 25px;}
+      #onlineUsers li {padding: 5px;}
     </style>
   </head>
   <body>
+    <div id="onlineUsersContainer">
+      <h3>Online Users:</h3>
+      <ul id="onlineUsers"></ul>
+    </div>
     <ul id="messages"></ul>
     <form action="">
       <p id="isTyping"></p>
@@ -76,6 +83,20 @@
           isTyping = true;
         }
       }, 100);
+
+      //send a message when nickname field is off focus
+      $('#nickname').blur(function() {
+        socket.emit('user online', {user: $('#nickname').val(), online: true});
+      });
+
+      //when user online message is received, show user as online
+      socket.on('user online', function(msg) {
+        if (msg.online) {
+          $('#onlineUsers').append($('<li>').text(msg.user));
+        } else {
+          $('#onlineUsers li:contains("' + msg.user + '")').remove();
+        }
+      });
 
     </script>
   </body>
