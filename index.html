@@ -6,8 +6,9 @@
       * { margin: 0; padding: 0; box-sizing: border-box; }
       body { font: 13px Helvetica, Arial; }
       form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
-      form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
+      form input { border: 1px solid black; padding: 10px; width: 90%; margin-right: .5%; }
       form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+      form p {color: white;}
       #messages { list-style-type: none; margin: 0; padding: 0; }
       #messages li { padding: 5px 10px; }
       #messages li:nth-child(odd) { background: #eee; }
@@ -16,20 +17,57 @@
   <body>
     <ul id="messages"></ul>
     <form action="">
-      <input id="m" autocomplete="off" /><button>Send</button>
+      <p id="isTyping"></p>
+      <input id="nickname" placeholder="Nickname"/>
+      <input id="m" autocomplete="off" placeholder="Message..." /><button>Send</button>
     </form>
     <script src="/socket.io/socket.io.js"></script>
     <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
     <script>
       var socket = io();
       $('form').submit(function() {
-        socket.emit('chat message', $('#m').val());
+        socket.emit('chat message', {user: $('#nickname').val(), msg: $('#m').val()});
         $('#m').val('');
         return false;
       });
       socket.on('chat message', function(msg) {
-        $('#messages').append($('<li>').text(msg));
+        $('#messages').append($('<li>').text(msg.user + ': ' + msg.msg));
       });
+
+      socket.on('typing state change', function(msg) {
+        if (msg.msg && msg.user !== '') {
+          $('#isTyping').append($('<span>').text(msg.user + ' is typing...'));
+        } else {
+          var stringToFind = msg.user + " is typing...";
+          $("span:contains('" + stringToFind + "')").remove();
+        }
+      });
+
+      var isTyping = false;
+      var numKeysPressed = 0;
+      var timeLastKeyPressed;
+      $("#m").on('keypress', function(e) {
+        //ignore enter key
+        if (e.keyCode == 13) {
+          return;
+        }
+        timeLastKeyPressed = Date.now();
+      });
+
+      var trackTyping = setInterval(function() {
+        var now = Date.now();
+        if (now - timeLastKeyPressed > 1000) {
+          isTyping = false;
+          socket.emit('typing state change', {user: $('#nickname').val(), msg: false});
+        } else {
+          if (!isTyping) {
+            socket.emit('typing state change', {user: $('#nickname').val(), msg: true});
+          }
+          isTyping = true;
+        }
+      }, 100);
+
+
     </script>
   </body>
 </html>
