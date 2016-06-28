@@ -15,7 +15,7 @@ io.on('connection', function(socket) {
 
   //emit when a user is typing
   socket.on('typing state change', function(msg) {
-    io.emit('typing state change', msg);
+    socket.broadcast.emit('typing state change', msg);
   });
 
   socket.on('disconnect', function() {
