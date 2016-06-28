@@ -9,6 +9,7 @@ app.get('/', function(req, res) {
 
 // on any connection...
 io.on('connection', function(socket) {
+
   //send user connected message to all users
   io.emit('chat message', {user: 'System', msg: 'a user connected...'});
 

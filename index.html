@@ -49,7 +49,7 @@
       });
 
       var isTyping = false; //is the user currently typing?
-      var timeLastKeyPressed; //timestamp of last keypress
+      var timeLastKeyPressed = Date.now(); //timestamp of last keypress
 
       //on keypress, update timestamp of last keypress. ignore enter key as it's used to send a message from the form
       $("#m").on('keypress', function(e) {
